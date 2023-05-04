@@ -1,119 +1,90 @@
-# GitHub Action for Symfony with MySQL
-name: Testing Symfony with MySQL
-on: [ push, pull_request ]
+name: CI/CD Symfony 6
+on:
+  push:
+
 jobs:
   symfony:
-    name: Symfony (PHP ${{ matrix.php-versions }})
-    runs-on: ubuntu-latest
-
-    steps:
-      # Mandatory : fetch the current repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      # To be faster, use cache system for the NPM
-      - name: Cache NPM (node_modules)
-        uses: actions/cache@v2
+    name: Symfony 6.1 (PHP ${{ matrix.php-versions }})
+    # https://hub.docker.com/_/ubuntu/
+    runs-on: ubuntu-20.04
+    services:
+      # https://docs.docker.com/samples/library/mysql/
+      mysql:
+        image: mysql:5.7
         env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      # Define the right Node.js's environment
-      - name: Environment for NPM
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      # NPM run build
-      - name: NPM build
-        run: |
-          node -v
-          npm ci --cache .npm --unsafe-perm --prefer-offline
-          npm run build
-      # Upload artifacts (= builded files) to download them in the next job
-      - name: NPM artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: npm-build
-          retention-days: 1
-          path: public/build/
-
-  deploy:
-    # Need the "build" job to be complete before started it
-    needs: build
-    runs-on: ubuntu-latest
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    strategy:
+      fail-fast: true
+      matrix:
+        php-versions: ['8.1', '8.2']
     steps:
-      # Mandatory : fetch the current repository
-      - name: Checkout repository
+      # —— Setup Github actions 🐙 —————————————————————————————————————————————
+      # https://github.com/actions/checkout (official)
+      - name: Checkout
         uses: actions/checkout@v2
 
-      # To be faster, use cache system for the Composer
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - name: Cache composer (vendor)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-
-      # Define the right PHP environment
       # https://github.com/shivammathur/setup-php (community)
-      - name: Environment for PHP
+      - name: Setup PHP, extensions and composer with shivammathur/setup-php
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, gd, iconv, json, mbstring, pdo
-          tools: composer:v2
-          coverage: none
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, gd, iconv, json, mbstring
         env:
           update: true
 
-      # Ensure that composer.json is valid
-      - name: Validate composer.json and composer.lock
-        run: composer validate
+      - name: Check PHP Version
+        run: php -v
 
-      # Log the PHP version in use, and copy the "prod" env file to the "local" env file
-      - name: PHP utils
-        run: |
-          php -v
-          cp .env.prod .env.local
-      # Install composer dependencies, and dump env
-      - name: Composer install & dump-env
-        run: |
-          composer install --no-dev --no-progress --no-scripts --prefer-dist -a
-          composer dump-env prod
-      # Download artifacts created in the previous job
-      - name: Download NPM artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: npm-build
-          path: public/build
-
-      # Define the right Node.js environment
-      - name: Environment for deploy
+      ## —— Yarn 🐱 ————————————————————————————————————————————————————————————
+      - name: Nodejs install
         uses: actions/setup-node@v2
         with:
           node-version: '14'
+          #registry-url: npm.fontawesome.com
+      - run: yarn install
+        #env:
+        #NODE_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
 
-      - name: Run Migration
-        run: php bin/console d:m:m || echo "No migrations found or migration failed"
-        env:
-          DATABASE_URL: mysql://root:@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/crm
+      - name: Yarn build
+        run: yarn run encore production
 
-      - name: Run tests
+      # —— Composer 🧙‍️ —————————————————————————————————————————————————————————
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      # —— Symfony 🎵 ——————————————————————————————————————————————————————————
+      - name: Check Symfony requirements
+        run: vendor/bin/requirements-checker
+
+      - name: Check the Symfony console
         run: |
-          php bin/console d:d:c --env=test || echo "No database created or create failed"
-          php bin/console d:m:m --no-interaction --env=test || echo "No migrations found or migration failed"
-          php bin/console d:f:l --no-interaction --env=test || echo "No fixtures found or fixtures failed"
+          bin/console about
+          bin/console strangebuzz:version
+
+      ## —— Coding standards ✨ ————————————————————————————————————————————————
+      - name: Coding standards checks (php_codesniffer + php-cs-fixer)
+        run: make cs
+        if: matrix.php-versions == '8.0'
+
+      ## —— Unit test ✅ ————————————————————————————————————————————————————————
+      - name: Unit tests
+        run: |
+          php bin/console d:d:c --env=test
+          php bin/console d:m:m --env=test --no-interaction
+          php bin/console d:f:l --env=test --no-interaction
           php bin/phpunit
-        env:
-          DATABASE_URL: mysql://root:@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/crm_test
