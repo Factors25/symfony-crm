@@ -64,13 +64,14 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-
+
       # Define the right PHP environment
       # https://github.com/shivammathur/setup-php (community)
       - name: Environment for PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'
-          #extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, gd, iconv, json, mbstring, pdo
+          php-version: '8.1'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, gd, iconv, json, mbstring, pdo
           tools: composer:v2
           coverage: none
         env:
