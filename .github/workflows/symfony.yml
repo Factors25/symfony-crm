@@ -1,11 +1,11 @@
-name: CI/CD production
-on:
-  push:
-    branches: [ production ]
-
+# GitHub Action for Symfony with MySQL
+name: Testing Symfony with MySQL
+on: [ push, pull_request ]
 jobs:
-  build:
+  symfony:
+    name: Symfony (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest
+
     steps:
       # Mandatory : fetch the current repository
       - name: Checkout repository
