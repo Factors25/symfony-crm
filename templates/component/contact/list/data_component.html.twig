@@ -1,0 +1,99 @@
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <div class="ribbon-box d-flex flex-row justify-content-between align-items-center">
+                <div class="ribbon ribbon-primary float-start">
+                    <i class="fas fa-list"></i>
+                    Liste
+                </div>
+
+                <div class="d-flex">
+                    <button
+                            class="btn btn-secondary"
+                            data-contact-list-target="formModal"
+                            type="button"
+                            title="Ajouter un contact"
+                            data-extension-form-modal-title="Ajouter un contact"
+                            data-extension-form-modal-form-url="{{ path('component_contact_list_new') }}"
+                            data-extension-form-modal-success-message="Le contact a bien été ajouté."
+                    >
+                        <i class="fa-solid fa-circle-plus"></i>
+                        <span class="d-none d-md-inline">Ajouter un contact</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table
+                        class="table table-striped table-centered mb-0 no-wrap table-sm"
+                        data-contact-list-target="datatable"
+                        data-column-defs="{{ [
+                            {'name': 'firstname', 'targets': 0, 'orderable': true},
+                            {'name': 'lastname', 'targets': 1, 'orderable': true},
+                            {'name': 'email', 'targets': 2, 'orderable': true},
+                            {'name': 'phone', 'targets': 3, 'orderable': true},
+                            {'name': 'actions', 'targets': 4, 'orderable': false}
+                        ]|json_encode() }}"
+                        data-searching="true"
+                        data-filter-hint="Prénom | Nom de famille | Email | Numéro de téléphone"
+                >
+                    <thead>
+                    <tr>
+                        <th>Prénom</th>
+                        <th>Nom de famille</th>
+                        <th>Email</th>
+                        <th>Numéro de téléphone</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for contact in contacts %}
+                        <tr>
+                            <td>{{ contact.firstname|capitalize }}</td>
+                            <td>{{ contact.lastname|upper }}</td>
+                            <td>{{ contact.email }}</td>
+                            <td>{{ contact.phoneNumber }}</td>
+
+                            <td class="action">
+                                <a
+                                        class="btn btn-primary"
+                                        title="Voir le contact {{ logic_contact_service.displayName(contact) }}"
+                                        href="{{ path('contact_show', {'contact':contact.id}) }}"
+                                >
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                <button
+                                        class="btn btn-secondary"
+                                        data-contact-list-target="formModal"
+                                        type="button"
+                                        title="Modifier le contact {{ logic_contact_service.displayName(contact) }}"
+                                        data-extension-form-modal-title="Modifier le contact {{ logic_contact_service.displayName(contact) }}"
+                                        data-extension-form-modal-form-url="{{ path('component_contact_list_edit', {'contact': contact.id}) }}"
+                                        data-extension-form-modal-success-message="Le contact a bien été modifié."
+                                >
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                <button
+                                        class="btn btn-danger"
+                                        data-contact-list-target="formModal"
+                                        type="button"
+                                        title="Supprimer le contact {{ logic_contact_service.displayName(contact) }}"
+                                        data-extension-form-modal-title="Supprimer le contact {{ logic_contact_service.displayName(contact) }}"
+                                        data-extension-form-modal-form-url="{{ path('component_contact_list_delete', {'contact': contact.id, 'redirect': false}) }}"
+                                        data-extension-form-modal-success-message="Le contact a bien été supprimé."
+                                >
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

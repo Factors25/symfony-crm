@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block tab %}Contacts{% endblock %}
+
+{% block title %}Contacts{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb m-0">
+        <li class="breadcrumb-item">Contacts</li>
+    </ol>
+{% endblock %}
+
+{% block page %}
+    {% include 'component/contact/list/container_component.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    {{ encore_entry_script_tags('contact-list-component') }}
+{% endblock %}

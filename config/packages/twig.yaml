@@ -1,0 +1,8 @@
+twig:
+    form_themes: ['bootstrap_5_layout.html.twig']
+    globals:
+        logic_contact_service: '@App\Service\Contact\LogicContactService'
+
+when@test:
+    twig:
+        strict_variables: true

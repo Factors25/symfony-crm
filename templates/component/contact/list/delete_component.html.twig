@@ -1,0 +1,18 @@
+<form method="post">
+    {% if errors is defined and errors|length > 0 %}
+        <div class="alert alert-danger">
+            {% for error in errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <p>Êtes-vous sûr de vouloir supprimer ce contact ?</p>
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="hidden" name="token" value="{{ csrf_token('delete-resource') }}">
+
+    <div class="text-end">
+        <button type="button" class="btn btn-light ms-1" data-bs-dismiss="modal">Annuler</button>
+        <button class="btn btn-danger">Supprimer</button>
+    </div>
+</form>

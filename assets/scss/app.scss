@@ -1,0 +1,32 @@
+@import '~bootstrap/scss/bootstrap';
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
+@import '~datatables.net-bs5';
+@import '~datatables.net-responsive-bs5';
+@import '~datatables.net-select-bs5';
+
+.page-container {
+  position: relative;
+  min-height: 100vh;
+}
+
+.content-wrap {
+  padding-bottom: 2.5rem;
+}
+
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 2.5rem;
+  padding: 8px;
+  background-color: skyblue;
+  text-align: center;
+}
+
+#toast {
+  z-index: 1;
+}
+
+tr {
+  vertical-align: unset;
+}

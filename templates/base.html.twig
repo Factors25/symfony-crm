@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block tab %}Welcome!{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
+        {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+        {% endblock %}
+
+        {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+        {% endblock %}
+    </head>
+    <body>
+        {% include 'component/extension/form_modal.html.twig' %}
+        {% include 'component/extension/toast.html.twig' %}
+
+        <div class="page-container">
+            <div class="content-wrap">
+                {% include 'include/header.html.twig' %}
+
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h1>{% block title %}{% endblock %}</h1>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="float-end">
+                                {% block breadcrumb %}{% endblock %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% block page %}
+
+                {% endblock %}
+
+                {% include 'include/footer.html.twig' %}
+            </div>
+        </div>
+    </body>
+</html>

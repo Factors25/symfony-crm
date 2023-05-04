@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block tab %}Contacts{% endblock %}
+
+{% block title %}Contacts{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb m-0">
+        <li class="breadcrumb-item fst-italic">Contacts</li>
+        <li class="breadcrumb-item">{{ contact_name }}</li>
+    </ol>
+{% endblock %}
+
+{% block page %}
+    <div class="container-fluid">
+        {% include 'component/contact/info/container_component.html.twig' %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    {{ encore_entry_script_tags('contact-info-component') }}
+    {{ encore_entry_script_tags('contact-list-component') }}
+{% endblock %}
