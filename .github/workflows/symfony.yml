@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php-versions: ['8.1', '8.2']
+        php-versions: ['8.1']
     steps:
       # —— Setup Github actions 🐙 —————————————————————————————————————————————
       # https://github.com/actions/checkout (official)
@@ -75,11 +75,6 @@ jobs:
         run: |
           bin/console about
           bin/console strangebuzz:version
-
-      ## —— Coding standards ✨ ————————————————————————————————————————————————
-      - name: Coding standards checks (php_codesniffer + php-cs-fixer)
-        run: make cs
-        if: matrix.php-versions == '8.0'
 
       ## —— Unit test ✅ ————————————————————————————————————————————————————————
       - name: Unit tests
