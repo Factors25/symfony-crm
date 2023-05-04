@@ -1,6 +1,8 @@
 name: CI/CD Symfony 6
 on:
   push:
+    branches:
+      - master
 
 jobs:
   symfony:
@@ -21,7 +23,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php-versions: ['8.1']
+        php-versions: [ '8.1' ]
     steps:
       # —— Setup GitHub actions 🐙 —————————————————————————————————————————————
       # https://github.com/actions/checkout (official)
@@ -73,6 +75,12 @@ jobs:
 
       - name: Check the Symfony console
         run: php bin/console about
+
+      - name: Migrations migrate
+        run: |
+          php bin/console d:m:m --no-interaction
+        env:
+          DATABASE_URL: mysql://root:@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/crm
 
       ## —— Unit test ✅ ————————————————————————————————————————————————————————
       - name: Unit tests
