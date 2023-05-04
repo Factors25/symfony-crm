@@ -10,18 +10,20 @@ jobs:
     services:
       # https://docs.docker.com/samples/library/mysql/
       mysql:
-        image: mysql:5.7
+        image: mysql:latest
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_DATABASE: crm
         ports:
-          - 3306:3306
+          - 3306/tcp
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       fail-fast: true
       matrix:
         php-versions: ['8.1']
     steps:
-      # —— Setup Github actions 🐙 —————————————————————————————————————————————
+      # —— Setup GitHub actions 🐙 —————————————————————————————————————————————
       # https://github.com/actions/checkout (official)
       - name: Checkout
         uses: actions/checkout@v2
@@ -43,17 +45,34 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14'
-          #registry-url: npm.fontawesome.com
+
       - run: yarn install
-        #env:
-        #NODE_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
 
       - name: Yarn build
         run: yarn run encore production
 
       # —— Composer 🧙‍️ —————————————————————————————————————————————————————————
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      # —— Symfony 🎵 ——————————————————————————————————————————————————————————
+      - name: Check Symfony requirements
+        run: vendor/bin/requirements-checker
+
+      - name: Check the Symfony console
+        run: php bin/console about
 
       ## —— Unit test ✅ ————————————————————————————————————————————————————————
       - name: Unit tests
@@ -62,3 +81,5 @@ jobs:
           php bin/console d:m:m --env=test --no-interaction
           php bin/console d:f:l --env=test --no-interaction
           php bin/phpunit
+        env:
+          DATABASE_URL: mysql://root:@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/crm_test
