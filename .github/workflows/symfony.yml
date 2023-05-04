@@ -62,7 +62,8 @@ jobs:
 
       - name: Run tests
         run: |
-          php bin/console d:m:m || echo "No migrations found or migration failed"
+          php bin/console d:d:c --env=test || echo "No database created or create failed"
+          php bin/console d:m:m --no-interaction --env=test || echo "No migrations found or migration failed"
           php bin/console d:f:l --no-interaction --env=test || echo "No fixtures found or fixtures failed"
           php bin/phpunit
         env:
