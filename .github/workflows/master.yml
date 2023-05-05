@@ -77,8 +77,10 @@ jobs:
         run: |
           php bin/console d:m:m --no-interaction
         env:
-          APP_ENV: prod
           DATABASE_URL: mysql://root:@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/crm
+
+      - name: Dump to prod
+        run: composer dump-env prod
 
       # —— Unit test ✅ ————————————————————————————————————————————————————————
       - name: Unit tests
